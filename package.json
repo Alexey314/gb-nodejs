@@ -1,0 +1,22 @@
+{
+  "name": "node-test-prj",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alexey314/gb-nodejs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Alexey314/gb-nodejs/issues"
+  },
+  "homepage": "https://github.com/Alexey314/gb-nodejs#readme",
+  "dependencies": {
+    "colors": "^1.4.0"
+  }
+}
