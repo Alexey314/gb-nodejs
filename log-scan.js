@@ -17,6 +17,12 @@ const options = yargs
     describe: "Substring to search for",
     type: "string",
     demandOption: false,
+  })
+  .option("r", {
+    alias: "regexp",
+    describe: "Regexp to search for",
+    type: "string",
+    demandOption: false,
   }).argv;
 
 async function promtUserSelectFile(path) {
@@ -34,18 +40,38 @@ async function promtUserSelectFile(path) {
     });
 }
 
+function toOptionArray(option) {
+  if (Array.isArray(option)) {
+    return option;
+  } else if (option) {
+    return [option];
+  }
+}
+
+function toPrintableArray(array) {
+  return array.map((val) => `'${val}'`).join(", ");
+}
+
 async function run() {
   let userPath = options.dir;
   while (fs.lstatSync(userPath).isDirectory()) {
     const dirEntry = await promtUserSelectFile(userPath);
     userPath = path.join(userPath, dirEntry);
   }
-  if (options.substring) {
-    if (Array.isArray(options.substring)) {
-      scanLog(userPath, ...options.substring);
-    } else {
-      scanLog(userPath, options.substring);
-    }
+
+  const substrings = toOptionArray(options.substring);
+  const regexps = toOptionArray(options.regexp);
+
+  console.log(`Selected file: ${userPath}`);
+  if (substrings) {
+    console.log(`Substrings to search for: ${toPrintableArray(substrings)}`);
+  }
+  if (regexps) {
+    console.log(`Patterns to search for: ${toPrintableArray(regexps)}`);
+  }
+
+  if (substrings) {
+    scanLog(userPath, ...substrings);
   }
 }
 
