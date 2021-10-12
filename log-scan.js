@@ -60,22 +60,34 @@ async function run() {
   }
 
   const substrings = toOptionArray(options.substring);
-  const regexps = toOptionArray(options.regexp);
+  const regexps = toOptionArray(options.regexp).map((val) => new RegExp(val));
 
   console.log(`Selected file: ${userPath}`);
   if (substrings) {
     console.log(`Substrings to search for: ${toPrintableArray(substrings)}`);
   }
   if (regexps) {
-    console.log(`Patterns to search for: ${toPrintableArray(regexps)}`);
+    console.log(
+      `Patterns to search for: ${toPrintableArray(
+        regexps.map((val) => val.toString())
+      )}`
+    );
   }
 
-  if (substrings) {
-    scanLog(userPath, ...substrings);
+  const searchables = [...substrings, ...regexps];
+
+  if (searchables) {
+    scanLog(userPath, ...searchables);
+  } else {
+    throw new Error("At least one -s or -r arg must be passed");
   }
 }
 
 run();
+
+function isRegexp(value) {
+  return Object.prototype.toString.call(value) === "[object RegExp]";
+}
 
 function scanLog(logPath, ...searchValues) {
   const readStream = fs.createReadStream(logPath, "utf-8");
@@ -86,7 +98,12 @@ function scanLog(logPath, ...searchValues) {
     }
   };
   const filters = [...searchValues].map((value) => {
-    const writeFilename = `./${value}_requests.log`;
+    // replace characters not allowed in filenames
+    const filenamePrefix = (isRegexp(value) ? value.toString() : value).replace(
+      /(\\|\/)/g,
+      "_"
+    );
+    const writeFilename = `./${filenamePrefix}_requests.log`;
     const writeStream = fs.createWriteStream(writeFilename, "utf-8");
     writeStream.on("error", onWriteError);
     writeStream.on("finish", () => console.log(`${writeFilename} written`));
@@ -105,7 +122,14 @@ function scanLog(logPath, ...searchValues) {
     for (let i = 0; i < validLineCount; i++) {
       const line = lines[i];
       for (let filter of filters) {
-        if (line.includes(filter.value)) {
+        let lineMatch = false;
+        if (isRegexp(filter.value)) {
+          lineMatch = filter.value.test(line);
+        } else {
+          lineMatch = line.includes(filter.value);
+        }
+
+        if (lineMatch) {
           filter.writeStream.write(line);
           filter.writeStream.write("\n");
         }
