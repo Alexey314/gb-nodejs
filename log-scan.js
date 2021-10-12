@@ -1,16 +1,55 @@
 const fs = require("fs");
 const yargs = require("yargs");
+const inquirer = require("inquirer");
+const path = require("path");
 
-const options = yargs
-  .usage("Usage: -d <path/to/folder>")
-  .option("d", {
-    alias: "dir",
-    describe: "Path to folder",
-    type: "string",
-    demandOption: true,
-  }).argv;
+const options = yargs.usage("Usage: -d <path/to/folder>").option("d", {
+  alias: "dir",
+  describe: "Path to folder",
+  type: "string",
+  demandOption: true,
+}).option("s", {
+  alias: "substring",
+  describe: "Substring to search for",
+  type: "string",
+  demandOption: false,
+}).argv;
 
 console.log(`options=${JSON.stringify(options)}`);
+
+async function promtUserSelectFile(path) {
+  return inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "targetPath",
+        message: "Select file to process",
+        choices: fs.readdirSync(path),
+      },
+    ])
+    .then((answer) => {
+      return Promise.resolve(answer.targetPath);
+    });
+}
+
+(async () => {
+  let userPath = options.dir;
+  while (fs.lstatSync(userPath).isDirectory()) {
+    const dirEntry = await promtUserSelectFile(userPath);
+    userPath = path.join(userPath, dirEntry);
+  }
+})();
+
+// .then((answers) => {
+//   // Use user feedback for... whatever!!
+// })
+// .catch((error) => {
+//   if (error.isTtyError) {
+//     // Prompt couldn't be rendered in the current environment
+//   } else {
+//     // Something else went wrong
+//   }
+// });
 
 function scanLog(logPath, ...searchValues) {
   const readStream = fs.createReadStream(logPath, "utf-8");
@@ -66,4 +105,4 @@ function scanLog(logPath, ...searchValues) {
   });
 }
 
-scanLog(...process.argv.slice(2));
+// scanLog(...process.argv.slice(2));

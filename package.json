@@ -4,6 +4,7 @@
   "description": "",
   "main": "log-scan",
   "dependencies": {
+    "inquirer": "^8.2.0",
     "yargs": "^17.2.1"
   },
   "scripts": {
