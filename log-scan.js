@@ -1,4 +1,16 @@
 const fs = require("fs");
+const yargs = require("yargs");
+
+const options = yargs
+  .usage("Usage: -d <path/to/folder>")
+  .option("d", {
+    alias: "dir",
+    describe: "Path to folder",
+    type: "string",
+    demandOption: true,
+  }).argv;
+
+console.log(`options=${JSON.stringify(options)}`);
 
 function scanLog(logPath, ...searchValues) {
   const readStream = fs.createReadStream(logPath, "utf-8");
