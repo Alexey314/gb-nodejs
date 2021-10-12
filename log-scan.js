@@ -59,14 +59,16 @@ async function run() {
     userPath = path.join(userPath, dirEntry);
   }
 
-  const substrings = toOptionArray(options.substring);
-  const regexps = toOptionArray(options.regexp).map((val) => new RegExp(val));
+  const substrings = options.substring ? toOptionArray(options.substring) : [];
+  const regexps = options.regexp
+    ? toOptionArray(options.regexp).map((val) => new RegExp(val))
+    : [];
 
   console.log(`Selected file: ${userPath}`);
-  if (substrings) {
+  if (substrings.length) {
     console.log(`Substrings to search for: ${toPrintableArray(substrings)}`);
   }
-  if (regexps) {
+  if (regexps.length) {
     console.log(
       `Patterns to search for: ${toPrintableArray(
         regexps.map((val) => val.toString())
@@ -76,14 +78,19 @@ async function run() {
 
   const searchables = [...substrings, ...regexps];
 
-  if (searchables) {
+  if (searchables.length) {
     scanLog(userPath, ...searchables);
   } else {
     throw new Error("At least one -s or -r arg must be passed");
   }
+
+  return Promise.resolve("Done");
 }
 
-run();
+run().catch((error) => {
+  console.error(error.message);
+  process.exit(1);
+});
 
 function isRegexp(value) {
   return Object.prototype.toString.call(value) === "[object RegExp]";
@@ -97,10 +104,10 @@ function scanLog(logPath, ...searchValues) {
       process.exit(1);
     }
   };
-  const filters = [...searchValues].map((value) => {
-    // replace characters not allowed in filenames
+  const filters = searchValues.map((value) => {
+    // replace characters not allowed in filenames for *NIX
     const filenamePrefix = (isRegexp(value) ? value.toString() : value).replace(
-      /(\\|\/)/g,
+      /(\\|\/|\x00)/g,
       "_"
     );
     const writeFilename = `./${filenamePrefix}_requests.log`;
