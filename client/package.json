@@ -2,10 +2,18 @@
   "name": "fmcli",
   "version": "1.0.0",
   "description": "",
-  "main": "fmcli.js",
+  "main": "src/fmcli.js",
+  "bin": {
+    "fmcli": "src/fmcli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^8.2.0",
+    "json-socket": "^0.3.0",
+    "yargs": "^17.2.1"
+  }
 }
