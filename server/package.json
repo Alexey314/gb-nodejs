@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "json-socket": "^0.3.0"
+    "json-socket": "^0.3.0",
+    "mime-types": "^2.1.33"
   }
 }
