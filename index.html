@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Basic HTML5 Template</title>
+    <script
+      src="https://cdn.socket.io/4.3.2/socket.io.min.js"
+      integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <p>Logged in as <span id="user-id"></span></p>
+    <p>Users online: <span id="user-counter">0</span></p>
+    <p id="notification"></p>
+    <input type="text" name="" id="message-input" />
+    <button id="message-send-btn">Send</button>
+    <div id="message-list"></div>
+
+    <script>
+      const userId = `User${(Math.random() * 10e3) | 0}`;
+      const socket = io("localhost:5555");
+
+      const userIdEl = document.getElementById("user-id");
+      const msgInputEl = document.getElementById("message-input");
+      const msgSendBtnEl = document.getElementById("message-send-btn");
+      const msgListEl = document.getElementById("message-list");
+      const userCounterEl = document.getElementById("user-counter");
+      const notificationEl = document.getElementById("notification");
+
+      userIdEl.innerText = userId;
+
+      socket.on("connect", () => {
+        console.log("connected");
+      });
+
+      socket.on("reconnect", () => {
+        console.log("reconnect");
+        socket.emit("CLIENT_RECONNECT", { userId: userId });
+      });
+
+      socket.on("SERVER_MSG", (data) => {
+        msgListEl.insertAdjacentHTML(
+          "beforeend",
+          `
+        <p>
+            <b>${escapeTags(data.userId)} wrote:</b>
+            <br>
+            ${escapeTags(data.message)}
+        </p>`
+        );
+      });
+
+      socket.on("SERVER_USERS_COUNT", (data) => {
+        console.log(data);
+        userCounterEl.innerText = data.usersCount;
+      });
+
+      socket.on("NEW_CLIENT_CONNECTED", () => {
+        console.log("NEW_CLIENT_CONNECTED");
+        notificationEl.innerText = "New client connected";
+        autohideNotification();
+      });
+
+      socket.on("CLIENT_DISCONNECTED", () => {
+        console.log("CLIENT_DISCONNECTED");
+        notificationEl.innerText = "Client disconnected";
+        autohideNotification();
+      });
+
+      socket.on("CLIENT_RECONNECTED", () => {
+        console.log("CLIENT_RECONNECTED");
+        notificationEl.innerText = "Client reconnected";
+        autohideNotification();
+      });
+
+      msgSendBtnEl.addEventListener("click", (evt) => {
+        const msgText = msgInputEl.value;
+        socket.emit("CLIENT_MSG", { userId: userId, message: msgText });
+      });
+
+      function escapeTags(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function autohideNotification() {
+        setTimeout(() => {
+          notificationEl.innerText = "";
+        }, 1000);
+      }
+    </script>
+  </body>
+</html>
