@@ -1,0 +1,15 @@
+{
+  "name": "fmserv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fmserv.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "json-socket": "^0.3.0",
+    "mime-types": "^2.1.33"
+  }
+}
